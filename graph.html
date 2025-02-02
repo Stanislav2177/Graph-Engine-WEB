@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Graph Engine Admin Console</title>
+    <link rel="stylesheet" href="style.css" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -12,19 +13,27 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <script src="graphEngine.js"></script>
+    <script src="apiCaller.js"></script>
     <style>
       #cy {
-        width: 1200px;
-        height: 700px;
+        width: 100%; /* Use full width of the column */
+        height: 800px;
         border: 2px solid black;
+      }
+      #deleteButtons {
+        display: none;
       }
     </style>
   </head>
   <body>
     <h1 class="mb-4">Welcome to Graph Engine UI ADMIN PORTAL</h1>
-    <div class="container">
+    <div class="d-flex justify-content-end">
+      <button type="button" id="btn-saveAllChanges" class="btn btn-success">
+        Save Changes
+      </button>
+    </div>
+    <div class="container" id="containerMain">
       <div class="row">
         <!-- Control Panel -->
         <div class="col-md-3">
@@ -40,53 +49,69 @@
             <button id="resetGraph" class="btn btn-danger btn-sm mb-2">
               Reset Graph
             </button>
-
             <button
               id="btn-openModalForNewNode"
               class="btn btn-primary btn-sm mb-2"
             >
               Add new Node
             </button>
+            <button id="btn-deleteNodes" class="btn btn-primary btn-sm mb-2">
+              Delete Nodes
+            </button>
             <p id="statusLabel" class="mt-3 text-muted">
               Status: Waiting for action...
             </p>
           </div>
+          <div id="deleteButtons" class="btn-group" role="group">
+            <button id="delete-button" class="btn btn-secondary">
+              Delete Selected
+            </button>
+            <button id="undo-button" class="btn btn-secondary">
+              Undo Deletion
+            </button>
+          </div>
+        </div>
+
+        <!-- Graph Area -->
+        <div class="col-md-9">
+          <div id="cy"></div>
         </div>
       </div>
+    </div>
 
-      <!-- Modals -->
-      <div
-        class="modal fade"
-        id="modal-forAddNewNode"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">
-                Add New Node
-              </h1>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
+    <!-- Modals -->
+    <div
+      class="modal fade"
+      id="modal-forAddNewNode"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">
+              Add New Node
+            </h1>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="input-group mb-3">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Source Node"
+                aria-label="Source Node"
+                aria-describedby="basic-addon2"
+                id="input-sourceNode"
+              />
             </div>
-            <div class="modal-body">
-              <div class="input-group mb-3">
-                <input
-                  type="text"
-                  class="form-control"
-                  placeholder="Source Node"
-                  aria-label="Source Node"
-                  aria-describedby="basic-addon2"
-                  id="input-sourceNode"
-                />
-              </div>
-              <div class="input-group mb-3">
+            <div class="input-group mb-3">
               <button
                 class="btn btn-outline-secondary"
                 id="btn-addNewDestinationInModal"
@@ -95,9 +120,7 @@
                 Add New Destination
               </button>
             </div>
-              <div class="input-group mb-3" id="modal-destinationDiv">
-              
-            </div>
+            <div class="input-group mb-3" id="modal-destinationDiv"></div>
             <div class="modal-footer">
               <button
                 type="button"
@@ -106,17 +129,17 @@
               >
                 Close
               </button>
-              <button type="button" class="btn btn-primary" id = "btn-saveChangesAndApplyInNewNodeModal">
+              <button
+                type="button"
+                class="btn btn-primary"
+                id="btn-saveChangesAndApplyInNewNodeModal"
+              >
                 Save changes
               </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <!-- Graph Area -->
-    <div class="col-md-9">
-      <div id="cy"></div>
     </div>
 
     <script></script>

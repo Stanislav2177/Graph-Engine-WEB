@@ -1,0 +1,102 @@
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 20px;
+}
+
+#containerMain {
+  max-width: 12000px;
+  margin: 0 auto;
+}
+
+/* Control Panel */
+.control-panel {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.control-panel h5 {
+  margin-bottom: 20px;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.control-panel .btn {
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 0.875rem;
+}
+
+.control-panel .btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.control-panel .btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.control-panel .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.control-panel .btn-danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+/* Status Label */
+#statusLabel {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-top: 50px;
+  text-align: center;
+}
+
+/* Delete Buttons */
+#deleteButtons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+#deleteButtons .btn {
+  flex: 1;
+  font-size: 0.875rem;
+}
+
+#deleteButtons .btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+#deleteButtons .btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .control-panel {
+    padding: 15px;
+  }
+
+  .control-panel .btn {
+    font-size: 0.8125rem;
+  }
+
+  #deleteButtons {
+    flex-direction: column;
+  }
+
+  #deleteButtons .btn {
+    width: 100%;
+  }
+}

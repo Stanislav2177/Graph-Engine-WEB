@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
+  //Buttons Init
   const buttonFetchAllConnections = document.getElementById(
     "fetchAllConnections"
   );
@@ -6,30 +7,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const buttonaddNewDestinationInModal = document.getElementById(
     "btn-addNewDestinationInModal"
   );
+
   const buttonSaveChangesAndApplyInNewNodeModal = document.getElementById(
     "btn-saveChangesAndApplyInNewNodeModal"
   );
-  const modaldestinationDiv = document.getElementById("modal-destinationDiv");
-  var counterForNewDestination = 1;
-  if (buttonFetchAllConnections) {
-    buttonFetchAllConnections.addEventListener("click", async () => {
-      try {
-        const response = await fetch("http://localhost:8082/graph");
-        if (!response.ok) throw new Error("Network response was not ok");
+  const buttonDeleteNodes = document.getElementById("btn-deleteNodes");
+  const buttonUndoDelete = document.getElementById("undo-button");
+  const buttonDelete = document.getElementById("delete-button");
 
-        const dataJson = await response.json();
-        console.log(dataJson);
-        loadDataToGraph(dataJson);
-      } catch (error) {
-        console.log("Error fetching data: ", error);
-      }
-    });
-  } else {
-    console.error("Button with id 'fetchAllConnections' not found in the DOM.");
+  //Global Vars
+  var isDeleteButtonsVisible = false;
+  const deletedElementsStack = [];
+  const addedElementsStack = [];
+  var removedElementsStack = [];
+  const mapWithAddedElements = new Map();
+  const lastPressedNode = [];
+
+  var cy;
+  //Global var to store the current graph
+  var elements = null;
+  init(); // init the graph with the fetched data
+  async function init() {
+    const response = await fetchGraph();
+    elements = response;
   }
 
+  const modaldestinationDiv = document.getElementById("modal-destinationDiv");
+  var counterForNewDestination = 1;
+  buttonFetchAllConnections.addEventListener("click", async () => {
+    const dataJson = await fetchGraph();
+    console.log(dataJson);
+    loadDataToGraph(dataJson);
+  });
+
   function loadDataToGraph(dataJson) {
-    const cy = cytoscape({
+    cy = cytoscape({
       container: document.getElementById("cy"), // HTML container element
       elements: {
         nodes: dataJson.elements.nodes.map((node) => ({
@@ -73,7 +85,64 @@ document.addEventListener("DOMContentLoaded", () => {
         rows: 3,
       },
     });
+
+    cy.on("click", "node", function (event) {
+      const node = event.target;
+      lastPressedNode.push(node.id());
+      console.log("Clicked node:", node.id());
+    });
+
+    cy.on("remove", function (event) {
+      // Store deleted elements
+      console.log("remove presed", event);
+      deletedElementsStack.push(event.target);
+
+      //   const t1 = {
+      //     source: lastPressedNode.pop(),
+      //     target: event.target._private.data.target,
+      //   };
+
+      //   removedElementsStack.push(t1);
+    });
+    buttonUndoDelete.addEventListener("click", function () {
+      const lastDeletedElement = deletedElementsStack.pop();
+      if (lastDeletedElement) {
+        cy.add(lastDeletedElement);
+      } else {
+        alert("Nothing to undo.");
+      }
+    });
   }
+
+  //--------- Buttons Func ----------
+  // Toggle visibility on button click
+  buttonDeleteNodes.addEventListener("click", function () {
+    let deleteButtonsDiv = document.getElementById("deleteButtons");
+    if (isDeleteButtonsVisible) {
+      // Hide the buttons
+      deleteButtonsDiv.style.display = "none";
+      isDeleteButtonsVisible = false;
+      buttonDeleteNodes.textContent = "Show Delete Buttons"; //Update button text
+    } else {
+      // Show the buttons
+      deleteButtonsDiv.style.display = "block";
+      isDeleteButtonsVisible = true;
+      buttonDeleteNodes.textContent = "Hide Delete Buttons"; //Update button text
+    }
+  });
+
+  // Delete selected elements with button
+  buttonDelete.addEventListener("click", function () {
+    const selectedElements = cy.$(":selected");
+    console.log(selectedElements);
+    if (selectedElements.length > 0) {
+      if (confirm("Are you sure you want to delete the selected elements?")) {
+        selectedElements.remove();
+      }
+    } else {
+      alert("No elements selected.");
+    }
+  });
 
   buttonOpenModal.addEventListener("click", function () {
     const modal = new bootstrap.Modal(
@@ -86,10 +155,16 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Modal opened");
   });
 
+  //Modal for adding NODES
   buttonaddNewDestinationInModal.addEventListener("click", function () {
     const dynamicDestinationsContainer = document.getElementById(
       "modal-destinationDiv"
     );
+
+    buttonDeleteNodes.addEventListener("click", function () {
+      console.log("t");
+      document.getElementById("deleteButtons").style.display = "block";
+    });
 
     // Create a new input group for the destination and weight
     const newInputGroup = document.createElement("div");
@@ -130,8 +205,15 @@ document.addEventListener("DOMContentLoaded", () => {
     "click",
     function () {
       var counter = 1;
-      var newNodes = [];
+      var currElStack = [];
+      const newElements = [];
+      var sourceNodeValue = document.getElementById("input-sourceNode").value;
+      newElements.push({
+        group: "nodes",
+        data: { id: sourceNodeValue, label: sourceNodeValue },
+      });
 
+      // Process all destination inputs
       while (document.getElementById(`destination-input-id-${counter}`)) {
         let weight = document.getElementById(
           `destination-weight-id-${counter}`
@@ -139,40 +221,90 @@ document.addEventListener("DOMContentLoaded", () => {
         let dest = document.getElementById(
           `destination-input-id-${counter}`
         ).value;
-        console.log(weight);
-        console.log(dest);
-        newNodes.push({ node: dest, weight: weight });
 
+        newElements.push({
+          group: "nodes",
+          data: { id: dest, label: dest },
+        });
+
+        // Add the edge between source and destination
+        newElements.push({
+          group: "edges",
+          data: {
+            id: `${sourceNodeValue}-${dest}`, // Unique edge ID
+            source: sourceNodeValue,
+            target: dest,
+            weight: weight,
+          },
+        });
+
+        currElStack.push({ node: dest, weight: weight });
         counter++;
       }
-      //Construct a json object which backend to receive
-      var sourceNodeValue = document.getElementById("input-sourceNode").value;
-      var obj = {
-        source: sourceNodeValue,
-        destinations: newNodes,
-      };
+
+      // Add the new elements to the graph
+      cy.add(newElements);
+      // Store the added elements in the map
+      mapWithAddedElements.set(sourceNodeValue, currElStack);
       $("#modal-forAddNewNode").modal("hide");
-
-      //reset the globar var for the counter which is used to make a new
-      //destionation nodes in the modal
       counterForNewDestination = 1;
-
-      fetch("http://localhost:8082/graph/add-node", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(obj),
-      })
-        .then((response) => response.json())
-        .then((data) => console.log(data))
-        .catch((error) => console.error("Error:", error));
     }
   );
 
-  buttonSaveChangesAndApplyInNewNodeModal;
+  document
+    .getElementById("btn-saveAllChanges")
+    .addEventListener("click", function () {
+      console.log("Current added Elements");
+      var jsonObj = "";
 
-  function parseJson(json) {
-    return JSON.parse(json);
-  }
+      // Save all Added Nodes
+      if (mapWithAddedElements) {
+        mapWithAddedElements.keys().forEach((key) => {
+          console.log("key", key);
+          var t3 = mapWithAddedElements.get(key);
+
+          // Transform the data to match the Edge class structure
+          const edges = t3.map((edge) => ({
+            node: { label: edge.node },
+            weight: parseFloat(edge.weight),
+          }));
+
+          jsonObj = {
+            source: key, // Source node with a label
+            target: edges, // Array of Edge objects
+          };
+
+          console.log("obj", jsonObj);
+        });
+
+        // Send the JSON object to the backend
+        //  postAddNewNodes(jsonObj);
+      }
+
+      console.log("Current removed Elements");
+      const map = new Map();
+
+      const t = [];
+      //   removedElementsStack.forEach((element) => {
+      //     if (!map.has(element.source)) {
+      //       map.set(element.source, []);
+      //     }
+      //     map.get(element.source).push(element.target);
+      //     t.push(element.source);
+      //   });
+
+      //   // Convert the Map to a JSON object
+      //   jsonObj = Object.fromEntries(map);
+      //   console.log(jsonObj);
+      //   console.log(t);
+
+      //   const cleanedArray = removedElementsStack.filter(
+      //     (obj) => Object.keys(obj).length > 0
+      //   );
+      //   const json = JSON.stringify(cleanedArray);
+
+      //   console.log(removedElementsStack);
+      //   removedElementsStack = [];
+      deleteNodes(JSON.stringify([lastPressedNode.pop()])); // Wrap in an array!
+    });
 });
