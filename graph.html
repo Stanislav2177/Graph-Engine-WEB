@@ -57,10 +57,27 @@
             </button>
             <button id="btn-deleteNodes" class="btn btn-primary btn-sm mb-2">
               Delete Nodes
+            </button>  
+            <button id="btn-deleteEdges" class="btn btn-primary btn-sm mb-2">
+              Delete Edges
             </button>
+            <button id="btn-findShortestPath" class="btn btn-primary btn-sm mb-2">
+              Find Shortest Path
+            </button>
+            <button id="add-edge-btn" class="btn btn-primary btn-sm mb-2">Add Edge(s) between nodes</button>
             <p id="statusLabel" class="mt-3 text-muted">
               Status: Waiting for action...
             </p>
+
+            <div class="col-sm-10" id="addWeightBtwEdges">
+              <input
+                type="number"
+                class="form-control"
+                id="inputAddWeightBtwEdges"
+                placeholder="Weight"
+                min="0"
+              />
+            </div>
           </div>
           <div id="deleteButtons" class="btn-group" role="group">
             <button id="delete-button" class="btn btn-secondary">
@@ -79,7 +96,7 @@
       </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Modal Add New Node -->
     <div
       class="modal fade"
       id="modal-forAddNewNode"
@@ -125,6 +142,7 @@
               <button
                 type="button"
                 class="btn btn-secondary"
+                data-toggle="modal"
                 data-bs-dismiss="modal"
               >
                 Close
@@ -142,6 +160,50 @@
       </div>
     </div>
 
+    <div class="container mt-4">
+      <div class="card p-3">
+        <h5>Status Updates</h5>
+        <p id="statusLabel">Initial Text</p>
+      </div>
+    </div>
+
+<!-- Modal Save Changes-->
+<div
+  class="modal fade"
+  id="modal-saveChanges"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="exampleModalCenterTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Send to server for saving the changes</h5>
+      </div>
+      <div class="modal-body">
+        <p id="statusLabelModalSaveChanges">Press save so the changes to be applied in the server</p>
+        <progress id="progressBar" value="0" max="100" style="width: 100%; display: none;"></progress>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-dismiss="modal-saveChanges"
+        >
+          Close
+        </button>
+        <button
+          id="btn-saveChangesAndSendToServer"
+          type="button"
+          class="btn btn-primary"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
     <script></script>
   </body>
 </html>

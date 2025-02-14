@@ -60,6 +60,9 @@ body {
   text-align: center;
 }
 
+#addWeightBtwEdges {
+  display: none;
+}
 /* Delete Buttons */
 #deleteButtons {
   margin-top: 20px;
@@ -70,6 +73,15 @@ body {
 #deleteButtons .btn {
   flex: 1;
   font-size: 0.875rem;
+}
+
+#statusLabel {
+  min-height: 50px;
+  padding: 10px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  white-space: pre-line; /* Allows line breaks */
 }
 
 #deleteButtons .btn-secondary {
@@ -99,4 +111,11 @@ body {
   #deleteButtons .btn {
     width: 100%;
   }
+}
+
+.highlighted {
+  background-color: yellow !important;
+  border-width: 3px;
+  border-color: orange;
+  shape: "rectangle"; /* Change node shape */
 }
