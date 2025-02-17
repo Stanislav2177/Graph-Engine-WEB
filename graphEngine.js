@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const stateRemoveEdges = {
-    isRemoveEdgesEnabled:false,
+    isRemoveEdgesEnabled: false,
     allEdgeData: [],
     undoRemovingEdge: []
   }
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
   var cy;
 
   // init the graph with the fetched data
-  init(); 
+  init();
   async function init() {
     const response = await fetchGraph();
     stateFetchData.elementsInit = response;
@@ -65,10 +65,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const dataJson = await fetchGraph();
     console.log(dataJson);
     loadDataToGraph(dataJson);
-    if(!dataJson){
+    if (!dataJson) {
       changeStatus("Problem with fetching data, check internet connection !");
-    }else{
-      stateFetchData.elementsInit = dataJson; 
+    } else {
+      stateFetchData.elementsInit = dataJson;
       stateFetchData.isDataAlreadyLoaded = true;
       setTimeOutFn("Waiting for action...", 1000)
     }
@@ -125,39 +125,49 @@ document.addEventListener("DOMContentLoaded", () => {
       const node = event.target;
       lastPressedNode.push(node.id());
 
-      if (stateAddEdges.isAddEdgeEnabled) {
-        stateAddEdges.currentClickedNode = node.id();
-        stateAddEdges.allClickedNodes.push(stateAddEdges.currentClickedNode);
-        if (stateAddEdges.allClickedNodes.length == 1) {
-          addTextToStatus("Source: " + stateAddEdges.currentClickedNode);
+      if (!isActionActivated) {
+        if (stateAddEdges.isAddEdgeEnabled) {
+          stateAddEdges.currentClickedNode = node.id();
+          stateAddEdges.allClickedNodes.push(stateAddEdges.currentClickedNode);
+          if (stateAddEdges.allClickedNodes.length == 1) {
+            addTextToStatus("Source add edge: " + stateAddEdges.currentClickedNode);
+          } else {
+            addTextToStatus("Target add edge: " + stateAddEdges.currentClickedNode);
+          }
+          isActionActivated = true;
+          console.log(stateAddEdges.allClickedNodes);
         } else {
-          addTextToStatus("Target: " + stateAddEdges.currentClickedNode);
+          changeStatus(`Clicked node:${node.id()}`);
         }
-        console.log(stateAddEdges.allClickedNodes);
-      }else{
-        changeStatus(`Clicked node:${node.id()}`);
       }
 
-      if(stateFindShortestPath.isFindShortestPathActive){
-        if (stateFindShortestPath.source = "") {
-          addTextToStatus("Source: " + stateAddEdges.currentClickedNode);
-        } else {
-          addTextToStatus("Target: " + stateAddEdges.currentClickedNode);
+      if (stateFindShortestPath.isFindShortestPathActive) {
+        if (stateFindShortestPath.source == "") {
+          stateFindShortestPath.source = node.id();
+          addTextToStatus("Source: " + stateFindShortestPath.source);
+          console.log("source:", stateFindShortestPath.source);
+        }
+        else {
+          stateFindShortestPath.target = node.id();
+          addTextToStatus("Target: " + stateFindShortestPath.target);
+          console.log("target:", stateFindShortestPath.target);
         }
 
+        if (stateFindShortestPath.source != "" && stateFindShortestPath.target != "") {
+          stateFindShortestPath.isFindShortestPathActive = false;
+        }
       }
-
     });
 
     //Click on Connection
-    cy.on('tap', 'edge', function (event) { 
+    cy.on('tap', 'edge', function (event) {
       const edge = event.target; // the clicked edge
       const edgeData = edge.data();
-      if(stateRemoveEdges.isRemoveEdgesEnabled && !isActionActivated){
+      if (stateRemoveEdges.isRemoveEdgesEnabled && !isActionActivated) {
         stateRemoveEdges.allEdgeData.push(edgeData);
         edge.remove();
         console.log("test");
-      }else{
+      } else {
         changeStatus(`Source: ${edgeData.source}; Target: ${edgeData.target}; Weight: ${edgeData.weight} `)
       }
     });
@@ -179,10 +189,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   //---------------- Reset graph -------------------
-  document.getElementById("resetGraph").addEventListener("click", function(){
-    if(stateFetchData.isDataAlreadyLoaded){
+  document.getElementById("resetGraph").addEventListener("click", function () {
+    if (stateFetchData.isDataAlreadyLoaded) {
       loadDataToGraph(stateFetchData.elementsInit);
-    }else{
+    } else {
       changeStatus("Fetch Data first");
     }
   })
@@ -192,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const path = dijkstra.pathTo(cy.$(`#${targetId}`));
     path.addClass("highlighted");
     console.log("Shortest path:", path.map((ele) => ele.id()));
-    
+
     cy.style()
       .selector(".highlighted")
       .style({
@@ -203,21 +213,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  buttonFindShortestPath.addEventListener("click", function(){
-    if(!stateFindShortestPath.isFindShortestPathActive){
+  buttonFindShortestPath.addEventListener("click", function () {
+    if (!stateFindShortestPath.isFindShortestPathActive) {
       stateFindShortestPath.isFindShortestPathActive = true;
       changeStatus("Choose Source and Target:");
       isActionActivated = true;
       buttonFindShortestPath.textContent = "Finish";
-    }else{
-      if(stateFindShortestPath.source == "" || stateFindShortestPath.target){
+    } else {
+      if (stateFindShortestPath.source == "" || stateFindShortestPath.target == "") {
         changeStatus("Missing node");
         stateFindShortestPath.isFindShortestPathActive = false;
         setTimeOutFn("base", 1000);
-        
-      }else{
-        findShortestPath(stateFindShortestPath.source, stateFindShortestPath.target);
         buttonFindShortestPath.textContent = "Find Shortest Path";
+      } else {
+        console.log("finding shortest path")
+        findShortestPath(stateFindShortestPath.source, stateFindShortestPath.target);
       }
     }
   })
@@ -301,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  document.getElementById("btn-deleteEdges").addEventListener("click", function(){
+  document.getElementById("btn-deleteEdges").addEventListener("click", function () {
     stateRemoveEdges.isRemoveEdgesEnabled = true;
     changeStatus("Press on edge to be removed");
   })
@@ -440,97 +450,97 @@ document.addEventListener("DOMContentLoaded", () => {
   // Send requests one by one, cannot be sent all at once, because will have conflict on manipulating
   //the same graph
   document
-  .getElementById("btn-saveChangesAndSendToServer")
-  .addEventListener("click", async function () {
-    const statusLabel = document.getElementById("statusLabelModalSaveChanges");
-    const progressBar = document.getElementById("progressBar");
+    .getElementById("btn-saveChangesAndSendToServer")
+    .addEventListener("click", async function () {
+      const statusLabel = document.getElementById("statusLabelModalSaveChanges");
+      const progressBar = document.getElementById("progressBar");
 
-    // Function to add text to the status modal
-    function addTextToStatusInModalSaveChanges(text) {
-      const t = statusLabel.innerHTML;
-      statusLabel.innerHTML = t + "<br>" + text;
-    }
-
-    // Function to show the progress bar
-    function showProgressBar() {
-      progressBar.style.display = "block";
-      progressBar.value = 0;
-    }
-
-    // Function to update the progress bar
-    function updateProgress(value) {
-      progressBar.value = value;
-    }
-
-    // Function to hide the progress bar
-    function hideProgressBar() {
-      progressBar.style.display = "none";
-    }
-
-    // Function to handle errors and display them in the modal
-    function handleError(error, operation) {
-      console.error(`Error during ${operation}:`, error);
-      addTextToStatusInModalSaveChanges(`<span style="color: red;">Error during ${operation}: ${error.message}</span>`);
-    }
-
-    // Start the process
-    showProgressBar();
-    addTextToStatusInModalSaveChanges("Starting the process...");
-
-    try {
-      // Delete nodes if any
-      if (removedElementsStack && removedElementsStack.length > 0) {
-        addTextToStatusInModalSaveChanges("Deleting nodes...");
-        await deleteNodes(removedElementsStack);
-        updateProgress(25);
-        addTextToStatusInModalSaveChanges("Nodes deleted successfully.");
+      // Function to add text to the status modal
+      function addTextToStatusInModalSaveChanges(text) {
+        const t = statusLabel.innerHTML;
+        statusLabel.innerHTML = t + "<br>" + text;
       }
 
-      // Add new connections if any
-      if (stateAddEdges && stateAddEdges.sourceAndConnectedEdges.length > 0) {
-        addTextToStatusInModalSaveChanges("Adding new connections...");
-        await postAddNewConnections(stateAddEdges.sourceAndConnectedEdges);
-        updateProgress(50);
-        addTextToStatusInModalSaveChanges("Connections added successfully.");
+      // Function to show the progress bar
+      function showProgressBar() {
+        progressBar.style.display = "block";
+        progressBar.value = 0;
       }
 
-      // Delete connections if any
-      if (stateRemoveEdges && stateRemoveEdges.allEdgeData.length > 0) {
-        addTextToStatusInModalSaveChanges("Deleting connections...");
-        await deleteConnections(stateRemoveEdges.allEdgeData);
-        updateProgress(75);
-        addTextToStatusInModalSaveChanges("Connections deleted successfully.");
+      // Function to update the progress bar
+      function updateProgress(value) {
+        progressBar.value = value;
       }
 
-      // Process added elements if any
-      if (mapWithAddedElements && mapWithAddedElements.size > 0) {
-        addTextToStatusInModalSaveChanges("Processing added elements...");
-        const jsonObj = {};
-
-        mapWithAddedElements.forEach((value, key) => {
-          const edges = value.map((edge) => ({
-            node: { label: edge.node },
-            weight: parseFloat(edge.weight),
-          }));
-
-          jsonObj[key] = edges;
-        });
-
-        await postAddNewNodes(jsonObj);
-        updateProgress(100);
-        addTextToStatusInModalSaveChanges("Added elements processed successfully.");
+      // Function to hide the progress bar
+      function hideProgressBar() {
+        progressBar.style.display = "none";
       }
 
-      // Final success message
-      addTextToStatusInModalSaveChanges("<span style='color: green;'>Process completed successfully!</span>");
-    } catch (error) {
-      // Handle any errors that occur during the process
-      handleError(error, "saving changes");
-    } finally {
-      // Hide the progress bar after the process is complete
-      hideProgressBar();
-    }
-  });
+      // Function to handle errors and display them in the modal
+      function handleError(error, operation) {
+        console.error(`Error during ${operation}:`, error);
+        addTextToStatusInModalSaveChanges(`<span style="color: red;">Error during ${operation}: ${error.message}</span>`);
+      }
+
+      // Start the process
+      showProgressBar();
+      addTextToStatusInModalSaveChanges("Starting the process...");
+
+      try {
+        // Delete nodes if any
+        if (removedElementsStack && removedElementsStack.length > 0) {
+          addTextToStatusInModalSaveChanges("Deleting nodes...");
+          await deleteNodes(removedElementsStack);
+          updateProgress(25);
+          addTextToStatusInModalSaveChanges("Nodes deleted successfully.");
+        }
+
+        // Add new connections if any
+        if (stateAddEdges && stateAddEdges.sourceAndConnectedEdges.length > 0) {
+          addTextToStatusInModalSaveChanges("Adding new connections...");
+          await postAddNewConnections(stateAddEdges.sourceAndConnectedEdges);
+          updateProgress(50);
+          addTextToStatusInModalSaveChanges("Connections added successfully.");
+        }
+
+        // Delete connections if any
+        if (stateRemoveEdges && stateRemoveEdges.allEdgeData.length > 0) {
+          addTextToStatusInModalSaveChanges("Deleting connections...");
+          await deleteConnections(stateRemoveEdges.allEdgeData);
+          updateProgress(75);
+          addTextToStatusInModalSaveChanges("Connections deleted successfully.");
+        }
+
+        // Process added elements if any
+        if (mapWithAddedElements && mapWithAddedElements.size > 0) {
+          addTextToStatusInModalSaveChanges("Processing added elements...");
+          const jsonObj = {};
+
+          mapWithAddedElements.forEach((value, key) => {
+            const edges = value.map((edge) => ({
+              node: { label: edge.node },
+              weight: parseFloat(edge.weight),
+            }));
+
+            jsonObj[key] = edges;
+          });
+
+          await postAddNewNodes(jsonObj);
+          updateProgress(100);
+          addTextToStatusInModalSaveChanges("Added elements processed successfully.");
+        }
+
+        // Final success message
+        addTextToStatusInModalSaveChanges("<span style='color: green;'>Process completed successfully!</span>");
+      } catch (error) {
+        // Handle any errors that occur during the process
+        handleError(error, "saving changes");
+      } finally {
+        // Hide the progress bar after the process is complete
+        hideProgressBar();
+      }
+    });
 
   function changeStatus(text) {
     if (text == "base") {
@@ -563,7 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  $('#modal-saveChanges').on('click', '.btn-secondary', function() {
+  $('#modal-saveChanges').on('click', '.btn-secondary', function () {
     // Perform additional actions here
     $('#modal-saveChanges').modal('hide'); // Manually hide the modal if needed
   });

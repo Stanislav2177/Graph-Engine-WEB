@@ -5,7 +5,7 @@ const apiPostNewConnections = "http://localhost:8082/graph/add-connections";
 const apiDeleteNewConnections = "http://localhost:8082/graph/deleteConnections";
 
 // Fetch graph data
-async function fetchGraph() {
+export async function fetchGraph() {
   try {
     const response = await fetch(apiFetchGraph);
     if (!response.ok) throw new Error("Network response was not ok");
@@ -14,12 +14,12 @@ async function fetchGraph() {
     return dataJson;
   } catch (error) {
     console.error("Error fetching data: ", error);
-    throw error; 
+    throw error;
   }
 }
 
 // Add new nodes
-async function postAddNewNodes(obj) {
+export async function postAddNewNodes(obj) {
   try {
     const response = await fetch(apiPostAddNodes, {
       method: "POST",
@@ -35,12 +35,12 @@ async function postAddNewNodes(obj) {
     return data;
   } catch (error) {
     console.error("Error adding new nodes: ", error);
-    throw error; 
+    throw error;
   }
 }
 
 // Add new connections
-async function postAddNewConnections(obj) {
+export async function postAddNewConnections(obj) {
   try {
     const response = await fetch(apiPostNewConnections, {
       method: "POST",
@@ -56,12 +56,12 @@ async function postAddNewConnections(obj) {
     return data;
   } catch (error) {
     console.error("Error adding new connections: ", error);
-    throw error; 
+    throw error;
   }
 }
 
 // Delete nodes
-async function deleteNodes(obj) {
+export async function deleteNodes(obj) {
   try {
     const response = await fetch(apiDeleteNodes, {
       method: "DELETE",
@@ -77,12 +77,12 @@ async function deleteNodes(obj) {
     return data;
   } catch (error) {
     console.error("Error deleting nodes: ", error);
-    throw error; 
+    throw error;
   }
 }
 
 // Delete connections
-async function deleteConnections(obj) {
+export async function deleteConnections(obj) {
   try {
     const response = await fetch(apiDeleteNewConnections, {
       method: "DELETE",
@@ -98,6 +98,6 @@ async function deleteConnections(obj) {
     return data;
   } catch (error) {
     console.error("Error deleting connections: ", error);
-    throw error; 
+    throw error;
   }
 }
